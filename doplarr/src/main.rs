@@ -27,6 +27,7 @@ pub mod args;
 pub mod config;
 pub mod discord;
 pub mod providers;
+pub mod triage;
 
 /// Sanitize error messages for Discord users while keeping full details in logs
 fn user_facing_error(err: &anyhow::Error) -> String {
@@ -100,6 +101,8 @@ async fn main() -> anyhow::Result<()> {
         .timeout(Duration::from_secs(30))
         .connect_timeout(Duration::from_secs(10))
         .build()?;
+
+    let triage = triage::Triage::from_env()?;
 
     // Connect to all available backends, cast into trait objects, and associate with their media types
     let mut backends = HashMap::new();
@@ -211,6 +214,17 @@ async fn main() -> anyhow::Result<()> {
                 }
             }
             Event::InteractionCreate(interaction) => {
+                if triage::Triage::is_button(&interaction.0) {
+                    if let Some(handler) = triage.clone() {
+                        let http = discord_http.clone();
+                        tokio::spawn(async move {
+                            if handler.handle(&interaction.0, http).await.is_err() {
+                                warn!("Could not acknowledge triage decision");
+                            }
+                        });
+                    }
+                    continue;
+                }
                 trace!(data = ?interaction, "Got interaction event");
                 match &interaction.data {
                     Some(InteractionData::ApplicationCommand(command_data)) => {
