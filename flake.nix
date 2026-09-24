@@ -66,6 +66,8 @@
             pname = "doplarr";
             cargoExtraArgs = "-p doplarr";
             GIT_HASH = gitRev;
+            # reqwest's native verifier needs roots even in offline unit tests.
+            SSL_CERT_FILE = "${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt";
           }
         );
 
