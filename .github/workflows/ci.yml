@@ -98,6 +98,6 @@ jobs:
 
             - name: Push Docker image
               run: |
-                  image_ref="ghcr.io/${GITHUB_REPOSITORY,,}:${IMAGE_TAG}"
+                  image_ref="ghcr.io/${GITHUB_REPOSITORY,,}/triage:${IMAGE_TAG}"
                   docker tag ghcr.io/activexray/doplarr_rs:latest "$image_ref"
                   docker push "$image_ref"
